@@ -1019,7 +1019,7 @@ class EnhancedAIAnalysisEngine:
 @st.cache_resource
 def initialize_ai_engine():
     """Initialize AI Analysis Engine with embedded API key and fallback options"""
-    api_key = "AIzaSyDGUg9-dsSVNaAiRndbSzSiDPZ6nYBcte0"
+    api_key = ""
     
     try:
         genai.configure(api_key=api_key)
@@ -1756,7 +1756,162 @@ def generate_comprehensive_report(personas_data, campaigns_data, analysis_data=N
     content += "*Powered by Google Gemini Pro for advanced customer intelligence*"
     
     return content
-
+def generate_persona_insights(personas_data):
+    """Generate smart insights about persona distribution and opportunities"""
+    if not personas_data or 'personas' not in personas_data:
+        return {}
+    
+    insights = {
+        'market_distribution': {},
+        'confidence_analysis': {},
+        'targeting_recommendations': [],
+        'revenue_potential': {}
+    }
+    
+    personas = personas_data['personas']
+    
+    # Market size analysis
+    total_market = 0
+    market_segments = []
+    
+    for persona in personas:
+        market_size = persona.get('market_size', '25%')
+        try:
+            if isinstance(market_size, str):
+                size = float(market_size.replace('%', ''))
+            else:
+                size = float(market_size)
+            market_segments.append(size)
+            total_market += size
+        except:
+            market_segments.append(25.0)
+    
+    insights['market_distribution'] = {
+        'total_addressable': f"{total_market:.1f}%",
+        'largest_segment': max(market_segments),
+        'segment_balance': 'Balanced' if max(market_segments) - min(market_segments) < 20 else 'Unbalanced'
+    }
+    
+    # Confidence analysis
+    confidences = []
+    for persona in personas:
+        conf = persona.get('confidence_score', 0.85)
+        if isinstance(conf, str):
+            try:
+                conf = float(conf.replace('%', '')) / 100
+            except:
+                conf = 0.85
+        confidences.append(conf)
+    
+    insights['confidence_analysis'] = {
+        'average_confidence': sum(confidences) / len(confidences),
+        'highest_confidence': max(confidences),
+        'reliability_score': 'High' if min(confidences) > 0.8 else 'Medium' if min(confidences) > 0.6 else 'Low'
+    }
+    
+    # Targeting recommendations
+    if insights['confidence_analysis']['average_confidence'] > 0.85:
+        insights['targeting_recommendations'].append("🎯 High-confidence personas - ready for immediate campaign launch")
+    
+    if insights['market_distribution']['segment_balance'] == 'Unbalanced':
+        insights['targeting_recommendations'].append("⚖️ Consider focusing on largest segment first for maximum impact")
+    
+    # Revenue potential (simplified estimation)
+    high_value_personas = sum(1 for p in personas if p.get('business_value', '').lower() in ['high', 'very high'])
+    insights['revenue_potential'] = {
+        'high_value_segments': high_value_personas,
+        'revenue_tier': 'Premium' if high_value_personas >= len(personas) / 2 else 'Standard'
+    }
+    
+    return insights
+def validate_and_score_data(customer_data, product_info):
+    """Enhanced data validation with detailed scoring"""
+    scores = {
+        'customer_data_quality': 0,
+        'product_detail_quality': 0,
+        'overall_readiness': 0,
+        'recommendations': []
+    }
+    
+    # Customer data analysis
+    if customer_data:
+        word_count = len(customer_data.split())
+        line_count = len(customer_data.split('\n'))
+        
+        # Check for key indicators
+        has_demographics = any(word in customer_data.lower() for word in ['age', 'income', 'salary', 'years old'])
+        has_pain_points = any(word in customer_data.lower() for word in ['problem', 'issue', 'difficult', 'frustrated', 'need'])
+        has_behaviors = any(word in customer_data.lower() for word in ['use', 'buy', 'prefer', 'like', 'want'])
+        
+        # Scoring
+        scores['customer_data_quality'] = min(100, (
+            (word_count * 0.5) +
+            (line_count * 2) +
+            (has_demographics * 20) +
+            (has_pain_points * 15) +
+            (has_behaviors * 15)
+        ))
+        
+        # Recommendations
+        if word_count < 100:
+            scores['recommendations'].append("Add more detailed customer feedback or interview data")
+        if not has_demographics:
+            scores['recommendations'].append("Include age, income, or occupation information")
+        if not has_pain_points:
+            scores['recommendations'].append("Add customer problems or pain points")
+    
+    # Product info analysis
+    if product_info:
+        word_count = len(product_info.split())
+        has_pricing = any(word in product_info.lower() for word in ['$', 'price', 'cost', 'free', 'premium'])
+        has_features = any(word in product_info.lower() for word in ['feature', 'benefit', 'capability'])
+        has_target = any(word in product_info.lower() for word in ['target', 'customer', 'market'])
+        
+        scores['product_detail_quality'] = min(100, (
+            (word_count * 2) +
+            (has_pricing * 25) +
+            (has_features * 20) +
+            (has_target * 15)
+        ))
+        
+        if word_count < 20:
+            scores['recommendations'].append("Provide more detailed product information")
+        if not has_pricing:
+            scores['recommendations'].append("Include pricing information")
+    
+    scores['overall_readiness'] = (scores['customer_data_quality'] + scores['product_detail_quality']) / 2
+    
+    return scores
+def display_competitive_analysis(comp_data):
+    """Enhanced competitive analysis display"""
+    st.markdown("### 🏢 Competitive Intelligence")
+    
+    landscape = comp_data.get('competitor_landscape', {})
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### Direct Competitors")
+        competitors = landscape.get('direct_competitors', [])
+        for i, comp in enumerate(competitors[:5]):
+            threat_level = "🔴" if i < 2 else "🟡" if i < 4 else "🟢"
+            st.write(f"{threat_level} {comp}")
+        
+        st.markdown("#### Positioning Gaps")
+        gaps = landscape.get('positioning_gaps', [])
+        for gap in gaps[:3]:
+            st.success(f"🎯 {gap}")
+    
+    with col2:
+        st.markdown("#### Differentiation Opportunities")
+        opportunities = landscape.get('differentiation_opportunities', [])
+        for opp in opportunities[:4]:
+            st.info(f"💡 {opp}")
+        
+        st.markdown("#### Competitive Advantage Score")
+        # Simple scoring based on opportunities
+        advantage_score = min(100, len(opportunities) * 20 + len(gaps) * 15)
+        st.progress(advantage_score / 100, f"Competitive Advantage: {advantage_score}%")
 # Main Application (Enhanced)
 def main():
     # Header with enhanced animations
@@ -1824,6 +1979,7 @@ def main():
     
     customer_data = ""
     
+    # Enhanced input validation
     if input_method == "📁 Upload CSV File":
         uploaded_file = st.sidebar.file_uploader(
             "Upload customer research CSV", 
@@ -1832,16 +1988,38 @@ def main():
         )
         if uploaded_file:
             df = pd.read_csv(uploaded_file)
-            st.sidebar.success(f"✅ Loaded {len(df)} records")
-            customer_data = df.to_string(max_rows=50)
-            
+            st.sidebar.success(f"✅ Loaded {len(df)} records, {len(df.columns)} columns")
+        
+        # Show data preview
+            with st.sidebar.expander("📊 Data Preview"):
+                st.dataframe(df.head(3))
+        
+            customer_data = df.to_string(max_rows=100)  # Increased limit
+        
     elif input_method == "📝 Paste Research Data":
         customer_data = st.sidebar.text_area(
-            "Paste customer research data:",
-            height=200,
-            placeholder="Survey responses, customer reviews, feedback, interview transcripts...",
-            help="Paste any customer research data - surveys, reviews, interviews, etc."
-        )
+        "Paste customer research data:",
+        height=200,
+        placeholder="Survey responses, customer reviews, feedback, interview transcripts...",
+        help="Paste any customer research data - surveys, reviews, interviews, etc."
+    )
+    
+    # Real-time validation
+        if customer_data:
+            validation = validate_and_score_data(customer_data, product_info)
+            score = validation['customer_data_quality']
+        
+            if score > 80:
+                st.sidebar.success(f"✅ Excellent data quality ({score:.0f}%)")
+            elif score > 60:
+                st.sidebar.warning(f"⚠️ Good data quality ({score:.0f}%)")
+            else:
+                st.sidebar.error(f"❌ More data needed ({score:.0f}%)")
+            
+            if validation['recommendations']:
+                with st.sidebar.expander("💡 Data Improvement Tips"):
+                    for rec in validation['recommendations'][:3]:
+                        st.write(f"• {rec}")
         
     else:  # Demo data
         customer_data = """
@@ -1955,56 +2133,40 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
             ):
                 
                 # Enhanced progress tracking
+                progress_steps = [
+                    ("🔍 Analyzing customer data patterns...", 15),
+                    ("🧠 Extracting behavioral insights...", 25),
+                    ("🎭 Creating detailed personas...", 40),
+                    ("🚀 Building campaign strategies...", 55),
+                    ("📊 Calculating performance metrics...", 70),
+                    ("🔬 Generating advanced insights...", 85),
+                    ("✅ Finalizing comprehensive analysis...", 100)
+                ]
+
                 progress_container = st.container()
-                status_container = st.container()
-                
                 with progress_container:
                     progress_bar = st.progress(0)
-                    
-                with status_container:
                     status_text = st.empty()
-                
-                try:
-                    # Step 1: Data Analysis
-                    status_text.markdown("🔍 **Analyzing customer data with AI...**")
-                    progress_bar.progress(15)
-                    time.sleep(1)
-                    
-                    analysis_results = ai_engine.analyze_customer_data(customer_data, product_info)
-                    
-                    # Step 2: Create Personas
-                    status_text.markdown(f"🎭 **Creating {num_personas} detailed personas...**")
-                    progress_bar.progress(35)
-                    time.sleep(1)
-                    
-                    personas_results = ai_engine.create_personas(analysis_results, num_personas)
-                    
-                    # Step 3: Create Campaigns
-                    status_text.markdown("🚀 **Developing campaign strategies...**")
-                    progress_bar.progress(55)
-                    time.sleep(1)
-                    
-                    campaigns_results = ai_engine.create_campaigns(personas_results)
-                    
-                    # Step 4: Advanced Features
-                    additional_results = {}
-                    
-                    if enable_competitor_analysis:
-                        status_text.markdown("🏢 **Analyzing competitive landscape...**")
-                        progress_bar.progress(70)
-                        time.sleep(0.5)
-                        additional_results['competitor_analysis'] = ai_engine.generate_competitor_analysis(personas_results)
-                    
-                    if enable_ab_testing and campaigns_results:
-                        status_text.markdown("🧪 **Generating A/B test ideas...**")
-                        progress_bar.progress(85)
-                        time.sleep(0.5)
-                        additional_results['ab_tests'] = ai_engine.generate_ab_test_ideas(campaigns_results['campaigns'][0])
-                    
-                    # Step 5: Complete
-                    status_text.markdown("✅ **Analysis complete! Advanced insights ready below.**")
-                    progress_bar.progress(100)
-                    time.sleep(1)
+    
+                    for step_text, step_progress in progress_steps:
+                        status_text.markdown(f"**{step_text}**")
+                        progress_bar.progress(step_progress)
+                        time.sleep(0.8)  # Realistic timing
+        
+        # Execute actual AI operations at specific steps
+                        if step_progress == 25:
+                            analysis_results = ai_engine.analyze_customer_data(customer_data, product_info)
+                        elif step_progress == 40:
+                            personas_results = ai_engine.create_personas(analysis_results, num_personas)
+                        elif step_progress == 55:
+                            campaigns_results = ai_engine.create_campaigns(personas_results)
+                        elif step_progress == 85:
+            # Generate additional features
+                            additional_results = {}
+                            if enable_competitor_analysis:
+                                additional_results['competitor_analysis'] = ai_engine.generate_competitor_analysis(personas_results)
+                            if enable_ab_testing and campaigns_results:
+                                additional_results['ab_tests'] = ai_engine.generate_ab_test_ideas(campaigns_results['campaigns'][0])
                     
                     # Store results in session state
                     st.session_state['analysis_complete'] = True
@@ -2024,10 +2186,6 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
                     st.balloons()
                     st.success(f"🎉 AI has successfully generated {num_personas} personas with advanced insights!")
                     
-                except Exception as e:
-                    st.error(f"🚨 Analysis failed: {str(e)}")
-                    st.info("💡 **Tip**: Try reducing the data size or refreshing the page.")
-                    return
     
     # Results Display Section (Enhanced)
     if st.session_state.get('analysis_complete', False):
@@ -2073,94 +2231,62 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
                 st.plotly_chart(roi_chart, use_container_width=True)
         
         # Tab 3: Analytics Dashboard
+        # Tab 3: Enhanced Analytics Dashboard
         with tabs[2]:
             st.subheader("📊 Advanced Analytics Dashboard")
-            
+    
+    # Generate smart insights
+            personas_data = st.session_state.get('personas_data', {})
+            campaigns_data = st.session_state.get('campaigns_data', {})
+    
+            smart_insights = generate_persona_insights(personas_data)
+    
+    # Top-level insights
+            if smart_insights:
+                col1, col2, col3, col4 = st.columns(4)
+        
+                with col1:
+                    market_dist = smart_insights.get('market_distribution', {})
+                    st.metric("Market Coverage", market_dist.get('total_addressable', 'N/A'))
+        
+                with col2:
+                    conf_analysis = smart_insights.get('confidence_analysis', {})
+                    avg_conf = conf_analysis.get('average_confidence', 0.85)
+                    st.metric("Avg Confidence", f"{avg_conf:.0%}")
+        
+                with col3:
+                    revenue_potential = smart_insights.get('revenue_potential', {})
+                    st.metric("High-Value Segments", revenue_potential.get('high_value_segments', 0))
+        
+                with col4:
+                    reliability = conf_analysis.get('reliability_score', 'Medium')
+                    st.metric("Reliability Score", reliability)
+    
+    # Charts section
             col1, col2 = st.columns(2)
-            
+    
             with col1:
-                # Market distribution
-                personas_data = st.session_state.get('personas_data', {})
                 market_chart = create_market_size_chart(personas_data)
                 if market_chart:
                     st.plotly_chart(market_chart, use_container_width=True)
-            
+        
+        # Add confidence chart below
+                conf_chart = create_confidence_chart(personas_data)
+                if conf_chart:
+                    st.plotly_chart(conf_chart, use_container_width=True)
+    
             with col2:
-                # Performance metrics (Enhanced)
-                st.markdown("### 🎯 Key Performance Indicators")
-                
-                personas_data = st.session_state.get('personas_data', {})
-                campaigns_data = st.session_state.get('campaigns_data', {})
-                
-                try:
-                    if personas_data and 'personas' in personas_data:
-                        confidences = []
-                        market_sizes = []
-                        refined_count = 0
-                        
-                        for p in personas_data['personas']:
-                            conf = p.get('confidence_score', 0.85)
-                            if isinstance(conf, str):
-                                try:
-                                    conf = float(conf.replace('%', '')) / 100
-                                except:
-                                    conf = 0.85
-                            elif isinstance(conf, dict):
-                                conf = conf.get('overall_confidence', 0.85)
-                            confidences.append(conf)
-                            
-                            market = p.get('market_size', '25%')
-                            if isinstance(market, str):
-                                try:
-                                    market = float(market.replace('%', ''))
-                                except:
-                                    market = 25.0
-                            market_sizes.append(market)
-                            
-                            if p.get('is_refined', False):
-                                refined_count += 1
-                        
-                        avg_confidence = sum(confidences) / len(confidences) if confidences else 0.89
-                        total_market = sum(market_sizes) if market_sizes else 85
-                    else:
-                        avg_confidence = 0.89
-                        total_market = 85
-                        refined_count = 0
-                    
-                    if campaigns_data and 'campaigns' in campaigns_data:
-                        roi_values = []
-                        for c in campaigns_data['campaigns']:
-                            roi = c.get('predicted_roi', '2.5x')
-                            try:
-                                roi_val = float(str(roi).replace('x', ''))
-                            except:
-                                roi_val = 2.5
-                            roi_values.append(roi_val)
-                        
-                        avg_roi = sum(roi_values) / len(roi_values) if roi_values else 3.4
-                    else:
-                        avg_roi = 3.4
-                    
-                except Exception as e:
-                    avg_confidence = 0.89
-                    total_market = 85
-                    avg_roi = 3.4
-                    refined_count = 0
-                
-                metrics_data = [
-                    ("Avg Confidence Score", f"{avg_confidence:.0%}", "🎯"),
-                    ("Market Coverage", f"{total_market:.0f}%", "📊"), 
-                    ("Predicted ROI", f"{avg_roi:.1f}x", "💰"),
-                    ("Refined Personas", f"{refined_count}/{len(personas_data.get('personas', []))}", "✨")
-                ]
-                
-                for metric, value, icon in metrics_data:
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <h4>{icon} {metric}</h4>
-                        <h2 style="color: #ffffff;">{value}</h2>
-                    </div>
-                    """, unsafe_allow_html=True)
+                roi_chart = create_roi_comparison_chart(campaigns_data)
+                if roi_chart:
+                    st.plotly_chart(roi_chart, use_container_width=True)
+        
+        # Smart recommendations
+                if smart_insights and smart_insights.get('targeting_recommendations'):
+                    st.markdown("### 💡 AI Recommendations")
+                    for rec in smart_insights['targeting_recommendations']:
+                        st.success(rec)
+    
+    # Rest of existing analytics code...
             
             # Additional Analytics
             additional_results = st.session_state.get('additional_results', {})
@@ -2711,32 +2837,39 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
 
     # Enhanced Footer
     # Enhanced Footer - COMPLETELY FIXED
+# Enhanced Footer - COMPLETELY FIXED
 st.markdown("---")
+st.markdown("""
+<div style='text-align: center; color: #666; padding: 2rem;'>
+    <h3>🏆 AI Marketing Persona Designer - Enhanced Edition</h3>
+    <p><strong>Powered by Google Gemini Flash 2.0 Experimental for lightning-fast analysis</strong></p>
+</div>
+""", unsafe_allow_html=True)
 
-# Use separate markdown calls instead of complex HTML
-st.markdown("<div style='text-align: center; color: #666; padding: 2rem;'>", unsafe_allow_html=True)
-st.markdown("### 🏆 AI Marketing Persona Designer - Enhanced Edition")
-st.markdown("**Powered by Google Gemini Flash 2.0 Experimental for lightning-fast analysis**")
-
-# Feature badges with simpler approach
+# Feature badges in columns
 col1, col2, col3, col4 = st.columns(4)
+feature_style = "background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center;"
+
 with col1:
-    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">🔄 Real-time Refinement</span>', unsafe_allow_html=True)
+    st.markdown(f'<div style="{feature_style}">🔄 Real-time Refinement</div>', unsafe_allow_html=True)
 with col2:
-    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">🎨 AI Content Generation</span>', unsafe_allow_html=True)
+    st.markdown(f'<div style="{feature_style}">🎨 AI Content Generation</div>', unsafe_allow_html=True)
 with col3:
-    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">🤖 Smart Assistant</span>', unsafe_allow_html=True)
+    st.markdown(f'<div style="{feature_style}">🤖 Smart Assistant</div>', unsafe_allow_html=True)
 with col4:
-    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">📊 Advanced Analytics</span>', unsafe_allow_html=True)
+    st.markdown(f'<div style="{feature_style}">📊 Advanced Analytics</div>', unsafe_allow_html=True)
 
-st.markdown("")  # Add some spacing
-st.markdown("Built with ❤️ using Streamlit | Transform marketing intelligence with cutting-edge AI")
-st.markdown("*Ready to use - No API key required! | Enhanced for hackathon excellence!*")
-
-st.markdown("")  # Add some spacing
-st.markdown('<div style="text-align: center;"><span style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.5rem 1rem; border-radius: 20px; color: white; font-weight: bold;">⚡ Powered by Gemini Flash 2.0 - Next-Gen AI Marketing Intelligence!</span></div>', unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("""
+<div style='text-align: center; margin-top: 1rem;'>
+    <p>Built with ❤️ using Streamlit | Transform marketing intelligence with cutting-edge AI</p>
+    <p><em>Ready to use - No API key required! | Enhanced for hackathon excellence!</em></p>
+    <div style="margin-top: 1rem;">
+        <span style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.5rem 1rem; border-radius: 20px; color: white; font-weight: bold;">
+            ⚡ Powered by Gemini Flash 2.0 - Next-Gen AI Marketing Intelligence!
+        </span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     # Initialize session state with enhanced tracking
