@@ -266,30 +266,6 @@ class AIAnalysisEngine:
         except Exception as e:
             return self._get_fallback_campaigns()
     
-    def generate_email_content(self, campaign_data: Dict) -> str:
-        """Generate sample email content for a campaign"""
-        prompt = f"""
-        Generate a professional marketing email based on this campaign data:
-
-        CAMPAIGN DATA:
-        {json.dumps(campaign_data, indent=2)}
-
-        Include:
-        1. Subject line
-        2. Greeting
-        3. Brief introduction
-        4. Key message
-        5. Call to action
-        6. Closing
-
-        Return as plain text without markdown formatting.
-        """
-        try:
-            response = self.model.generate_content(prompt)
-            return response.text.strip()
-        except Exception as e:
-            return "Subject: [Campaign Title]\nHi [Name],\n\nWe’re excited to share [brief intro]...\n\n[Key Message]\n\nClick here to learn more!\n\nBest,\n[Your Brand]"
-
     def _get_fallback_analysis(self):
         """Fallback analysis data"""
         return {
@@ -716,35 +692,6 @@ def create_roi_comparison_chart(campaigns_data):
         paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#333'),
         xaxis_tickangle=-45
-    )
-    
-    return fig
-
-def create_trend_analysis_chart(analysis_data):
-    """Create trend analysis visualization based on market opportunities"""
-    if not analysis_data or 'market_opportunities' not in analysis_data:
-        return None
-        
-    opportunities = analysis_data.get('market_opportunities', [])
-    trends = [opp.get('trend', 'Unknown Trend') for opp in opportunities]
-    impact_scores = [opp.get('impact_score', 0.5) * 100 for opp in opportunities]
-    
-    if not trends or not impact_scores:
-        return None
-    
-    fig = px.line(
-        x=trends,
-        y=impact_scores,
-        title="Market Trend Impact Analysis",
-        labels={'x': 'Trends', 'y': 'Impact Score (%)'},
-        markers=True,
-        color_discrete_sequence=['#667eea']
-    )
-    
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#333')
     )
     
     return fig
@@ -1271,12 +1218,11 @@ Review: "Excellent ROI and my team's productivity improved significantly. Highly
         st.markdown("## 📊 AI Analysis Results")
         
         # Create tabs for different views
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        tab1, tab2, tab3, tab4 = st.tabs([
             "👥 Customer Personas", 
             "🚀 Campaign Strategies", 
             "📈 Analytics Dashboard", 
-            "📋 Export & Share",
-            "📊 Trend Analysis"
+            "📋 Export & Share"
         ])
         
         with tab1:
@@ -1289,23 +1235,7 @@ Review: "Excellent ROI and my team's productivity improved significantly. Highly
             conf_chart = create_confidence_chart(personas_data)
             if conf_chart:
                 st.plotly_chart(conf_chart, use_container_width=True)
-            
-            # Custom Persona Customization
-            selected_persona = st.selectbox("Select Persona to Customize", [p['name'] for p in personas_data.get('personas', [])])
-            if selected_persona:
-                persona = next(p for p in personas_data['personas'] if p['name'] == selected_persona)
-                with st.expander("Customize Persona"):
-                    new_name = st.text_input("Name", persona['name'])
-                    new_tagline = st.text_input("Tagline", persona['tagline'])
-                    new_age_range = st.text_input("Age Range", persona['demographics']['age_range'])
-                    new_income_range = st.text_input("Income Range", persona['demographics']['income_range'])
-                    if st.button("Save Changes"):
-                        persona['name'] = new_name
-                        persona['tagline'] = new_tagline
-                        persona['demographics']['age_range'] = new_age_range
-                        persona['demographics']['income_range'] = new_income_range
-                        st.success("Persona updated successfully!")
-
+        
         with tab2:
             st.subheader("🎯 Campaign Strategies")
             
@@ -1316,15 +1246,7 @@ Review: "Excellent ROI and my team's productivity improved significantly. Highly
             roi_chart = create_roi_comparison_chart(campaigns_data)
             if roi_chart:
                 st.plotly_chart(roi_chart, use_container_width=True)
-            
-            # Email Campaign Generator
-            selected_campaign = st.selectbox("Select Campaign for Email", [c['title'] for c in campaigns_data.get('campaigns', [])])
-            if selected_campaign:
-                campaign = next(c for c in campaigns_data['campaigns'] if c['title'] == selected_campaign)
-                if st.button(f"Generate Email for {selected_campaign}"):
-                    email_content = ai_engine.generate_email_content(campaign)
-                    st.text_area("Sample Email Content", email_content, height=200)
-
+        
         with tab3:
             st.subheader("📊 Analytics Dashboard")
             
@@ -1513,14 +1435,6 @@ Review: "Excellent ROI and my team's productivity improved significantly. Highly
                     file_name=f"persona_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                     mime="application/json"
                 )
-
-        with tab5:
-            st.subheader("📊 Trend Analysis")
-            analysis_data = st.session_state.get('analysis_data', {})
-            trend_chart = create_trend_analysis_chart(analysis_data)
-            if trend_chart:
-                st.plotly_chart(trend_chart, use_container_width=True)
-            st.write("This chart visualizes the impact of identified market trends based on the analysis.")
 
     # Footer
     st.markdown("---")
