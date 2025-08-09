@@ -195,7 +195,7 @@ class PersonaJourney:
 
 # Enhanced AI Analysis Engine with Fixed Bugs
 class EnhancedAIAnalysisEngine:
-    def __init__(self, api_key, model_name='gemini-2.0-flash-exp'):
+    def __init__(self, api_key, model_name='gemini-2.0-flash'):
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
         self.model_name = model_name
@@ -1019,11 +1019,11 @@ class EnhancedAIAnalysisEngine:
 @st.cache_resource
 def initialize_ai_engine():
     """Initialize AI Analysis Engine with embedded API key and fallback options"""
-    api_key = "AIzaSyBuTje5i_tHYA0XnIr-3i_jGeRV__Wqd8Q"
+    api_key = "AIzaSyDGUg9-dsSVNaAiRndbSzSiDPZ6nYBcte0"
     
     try:
         genai.configure(api_key=api_key)
-        test_model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        test_model = genai.GenerativeModel('gemini-2.0-flash')
         test_response = test_model.generate_content("Hello")
         
         st.success("✅ Connected to Gemini Flash 2.0 Experimental!")
@@ -1780,7 +1780,7 @@ def main():
     # AI Status Display (Enhanced)
     st.sidebar.markdown("### 🤖 AI System Status")
     if ai_engine:
-        st.sidebar.success(f"✅ Model: {getattr(ai_engine, 'model_name', 'gemini-2.0-flash-exp')}")
+        st.sidebar.success(f"✅ Model: {getattr(ai_engine, 'model_name', 'gemini-2.0-flash')}")
         st.sidebar.success("✅ API Key: Configured")
         st.sidebar.markdown("""
         <div class="agent-status">🔍 Analysis Engine: Ready</div>
@@ -2710,29 +2710,33 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
                 st.json(summary_data)
 
     # Enhanced Footer
-    st.markdown("---")
-    st.markdown("""
-    <div style='text-align: center; color: #666; padding: 2rem;'>
-        <h3>🏆 AI Marketing Persona Designer - Enhanced Edition</h3>
-        <p>Powered by <strong>Google Gemini Flash 2.0 Experimental</strong> for lightning-fast analysis</p>
-        
-        <div style="display: flex; justify-content: center; gap: 20px; margin: 1rem 0;">
-            <span class="new-feature">🔄 Real-time Refinement</span>
-            <span class="new-feature">🎨 AI Content Generation</span>
-            <span class="new-feature">🤖 Smart Assistant</span>
-            <span class="new-feature">📊 Advanced Analytics</span>
-        </div>
-        
-        <p>Built with ❤️ using Streamlit | Transform marketing intelligence with cutting-edge AI</p>
-        <p><em>Ready to use - No API key required! | Enhanced for hackathon excellence!</em></p>
-        
-        <p style="margin-top: 1rem;">
-            <span style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.5rem 1rem; border-radius: 20px; color: white; font-weight: bold;">
-                ⚡ Powered by Gemini Flash 2.0 - Next-Gen AI Marketing Intelligence!
-            </span>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Enhanced Footer - COMPLETELY FIXED
+st.markdown("---")
+
+# Use separate markdown calls instead of complex HTML
+st.markdown("<div style='text-align: center; color: #666; padding: 2rem;'>", unsafe_allow_html=True)
+st.markdown("### 🏆 AI Marketing Persona Designer - Enhanced Edition")
+st.markdown("**Powered by Google Gemini Flash 2.0 Experimental for lightning-fast analysis**")
+
+# Feature badges with simpler approach
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">🔄 Real-time Refinement</span>', unsafe_allow_html=True)
+with col2:
+    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">🎨 AI Content Generation</span>', unsafe_allow_html=True)
+with col3:
+    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">🤖 Smart Assistant</span>', unsafe_allow_html=True)
+with col4:
+    st.markdown('<span style="background: linear-gradient(45deg, #00c9ff, #92fe9d); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem; font-weight: bold; display: block; text-align: center; margin: 0.2rem;">📊 Advanced Analytics</span>', unsafe_allow_html=True)
+
+st.markdown("")  # Add some spacing
+st.markdown("Built with ❤️ using Streamlit | Transform marketing intelligence with cutting-edge AI")
+st.markdown("*Ready to use - No API key required! | Enhanced for hackathon excellence!*")
+
+st.markdown("")  # Add some spacing
+st.markdown('<div style="text-align: center;"><span style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 0.5rem 1rem; border-radius: 20px; color: white; font-weight: bold;">⚡ Powered by Gemini Flash 2.0 - Next-Gen AI Marketing Intelligence!</span></div>', unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     # Initialize session state with enhanced tracking
