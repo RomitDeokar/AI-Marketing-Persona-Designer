@@ -927,32 +927,23 @@ class EnhancedAIAnalysisEngine:
                     "key_message": "Transform your productivity with intelligent automation that saves hours every day",
                     "value_propositions": [
                         "Save 3+ hours daily with smart automation",
-                        "Seamless integration with existing tools",
+                        "Seamless integration with existing tools", 
                         "Real-time analytics and insights",
                         "Enterprise-grade security and reliability"
                     ],
                     "channels": ["LinkedIn Ads", "Google Search", "Email Marketing", "Webinars"],
-                    "content_formats": ["Video demos", "ROI calculators", "Case studies", "Comparison guides"],
                     "content_strategy": [
                         "Productivity Tips & Hacks",
-                        "Industry Efficiency Trends", 
-                        "Customer Success Stories",
+                        "Industry Efficiency Trends",
+                        "Customer Success Stories", 
                         "Integration Tutorials"
                     ],
-                    "success_metrics": ["Time saved per user", "User adoption rate", "Feature utilization", "Customer satisfaction"],
                     "predicted_roi": "3.4x",
                     "conversion_rate": "8.5%",
-                    "payback_period": "6 months",
-                    "confidence_interval": "85-95%",
-                    "budget_allocation": {
-                        "digital_ads": "40%",
-                        "content_creation": "30%",
-                        "email_marketing": "20%",
-                        "events_webinars": "10%"
-                    }
+                    "confidence_interval": "85-95%"
                 },
                 {
-                    "title": "Smart Family Value Campaign",
+                    "title": "Smart Family Value Campaign", 
                     "persona_target": "Jordan the Value Optimizer",
                     "theme": "Smart Choices for Smart Families",
                     "key_message": "The smart choice families trust for unbeatable value and peace of mind",
@@ -963,55 +954,15 @@ class EnhancedAIAnalysisEngine:
                         "Money-back satisfaction guarantee"
                     ],
                     "channels": ["Facebook", "Instagram", "Community Partnerships", "Local Radio"],
-                    "content_formats": ["Family testimonials", "Value comparisons", "Safety guides", "Community stories"],
                     "content_strategy": [
                         "Family Success Stories",
                         "Money-Saving Tips",
                         "Community Spotlights",
                         "Value Comparison Charts"
                     ],
-                    "success_metrics": ["Customer lifetime value", "Referral rate", "Family satisfaction", "Repeat purchase rate"],
                     "predicted_roi": "2.8x",
-                    "conversion_rate": "6.2%",
-                    "payback_period": "8 months",
-                    "confidence_interval": "75-85%",
-                    "budget_allocation": {
-                        "social_media": "35%",
-                        "community_partnerships": "25%",
-                        "content_creation": "25%",
-                        "traditional_media": "15%"
-                    }
-                },
-                {
-                    "title": "Premium Excellence Experience",
-                    "persona_target": "Sam the Premium Pursuer",
-                    "theme": "Exceptional Quality for Discerning Individuals",
-                    "key_message": "Uncompromising excellence for those who accept nothing less than the best",
-                    "value_propositions": [
-                        "Premium quality with exclusive features",
-                        "White-glove service and personal attention",
-                        "Industry-leading expertise and support",
-                        "Exclusive access to premium community"
-                    ],
-                    "channels": ["Premium Email", "Industry Publications", "Executive Networks", "Exclusive Events"],
-                    "content_formats": ["Executive briefings", "Premium case studies", "Expert interviews", "Exclusive reports"],
-                    "content_strategy": [
-                        "Industry Leadership Content",
-                        "Premium Insights & Trends",
-                        "Exclusive Access Programs",
-                        "Executive Success Stories"
-                    ],
-                    "success_metrics": ["Premium customer acquisition", "Average deal size", "Customer advocacy", "Retention rate"],
-                    "predicted_roi": "4.1x",
-                    "conversion_rate": "12.3%",
-                    "payback_period": "4 months",
-                    "confidence_interval": "90-95%",
-                    "budget_allocation": {
-                        "premium_content": "35%",
-                        "exclusive_events": "30%",
-                        "executive_outreach": "25%",
-                        "industry_publications": "10%"
-                    }
+                    "conversion_rate": "6.2%", 
+                    "confidence_interval": "75-85%"
                 }
             ]
         }
@@ -1071,12 +1022,24 @@ def create_confidence_chart(personas_data):
         
         confidence = p.get('confidence_score', 0.85)
         if isinstance(confidence, dict):
-            confidence = confidence.get('overall_confidence', 0.85)
+            confidence = confidence.get('overall_confidence', confidence.get('confidence_metrics', {}).get('overall_confidence', 0.85))
         elif isinstance(confidence, str):
             try:
-                confidence = float(confidence.replace('%', '')) / 100
-            except:
+                if '%' in confidence:
+                    confidence = float(confidence.replace('%', '')) / 100
+                else:
+                    confidence = float(confidence)
+                    if confidence > 1:  # Handle cases where it's 85 instead of 0.85
+                        confidence = confidence / 100
+            except (ValueError, TypeError):
                 confidence = 0.85
+        elif not isinstance(confidence, (int, float)):
+            confidence = 0.85
+        elif isinstance(confidence, (int, float)) and confidence > 1:
+            confidence = confidence / 100  # Convert 85 to 0.85
+
+# Ensure confidence is within valid range
+        confidence = max(0, min(1, confidence))
         
         scores.append(confidence * 100)
         refined_status.append('Refined' if p.get('is_refined', False) else 'Original')
@@ -1382,22 +1345,47 @@ def display_personas(personas_data):
         
         with col2:
             # Safely get metrics
-            confidence = persona.get('confidence_score', persona.get('confidence_metrics', {}).get('overall_confidence', 0.85))
-            market_size = persona.get('market_size', persona.get('business_metrics', {}).get('market_segment_size', '25%'))
-            business_value = persona.get('business_value', persona.get('business_metrics', {}).get('estimated_value', 'Medium'))
-            
-            # Ensure confidence is a float
-            if isinstance(confidence, str):
+            # Safely get metrics with comprehensive type checking
+            confidence = persona.get('confidence_score', 0.85)
+            if isinstance(confidence, dict):
+                confidence = confidence.get('overall_confidence', confidence.get('confidence_metrics', {}).get('overall_confidence', 0.85))
+            elif isinstance(confidence, str):
                 try:
-                    confidence = float(confidence.replace('%', '')) / 100
-                except:
+                    if '%' in confidence:
+                        confidence = float(confidence.replace('%', '')) / 100
+                    else:
+                        confidence = float(confidence)
+                        if confidence > 1:  # Handle cases where it's 85 instead of 0.85
+                            confidence = confidence / 100
+                except (ValueError, TypeError):
                     confidence = 0.85
-            
-            # Ensure market_size has %
-            if isinstance(market_size, (int, float)):
+            elif not isinstance(confidence, (int, float)):
+                confidence = 0.85
+            elif isinstance(confidence, (int, float)) and confidence > 1:
+                confidence = confidence / 100  # Convert 85 to 0.85
+
+# Ensure confidence is within valid range
+            confidence = max(0, min(1, confidence))
+
+# Safely get market size
+            market_size = persona.get('market_size', '25%')
+            if isinstance(market_size, dict):
+                market_size = market_size.get('market_segment_size', '25%')
+            elif isinstance(market_size, (int, float)):
                 market_size = f"{market_size}%"
-            elif not str(market_size).endswith('%'):
-                market_size = f"{market_size}%"
+            elif not isinstance(market_size, str) or not market_size.endswith('%'):
+                try:
+                    size_val = float(str(market_size).replace('%', ''))
+                    market_size = f"{size_val}%"
+                except:
+                    market_size = "25%"
+
+# Safely get business value
+            business_value = persona.get('business_value', 'Medium')
+            if isinstance(business_value, dict):
+                business_value = business_value.get('estimated_value', 'Medium')
+            elif not isinstance(business_value, str):
+                business_value = str(business_value) if business_value else 'Medium'
             
             # Display metrics
             confidence_color = "🟢" if confidence > 0.85 else "🟡" if confidence > 0.7 else "🔴"
@@ -1430,18 +1418,31 @@ def display_campaigns(campaigns_data):
     for campaign in campaigns:
         title = campaign.get('title', 'Marketing Campaign')
         persona_target = campaign.get('persona_target', 'Target Audience')
-        theme = campaign.get('theme', campaign.get('campaign_theme', 'Campaign Theme'))
-        key_message = campaign.get('key_message', campaign.get('core_messaging', {}).get('primary_message', 'Engaging marketing message'))
+        theme = campaign.get('theme')
+        if not theme:
+            theme = campaign.get('campaign_theme', 'Campaign Theme')
         
-        # Handle channels safely
-        channels = campaign.get('channels', ['Email', 'Social Media'])
+        key_message = campaign.get('key_message')
+        if not key_message:
+            messaging = campaign.get('core_messaging', {})
+            if isinstance(messaging, dict):
+                key_message = messaging.get('primary_message', 'Engaging marketing message')
+            else:
+                key_message = 'Engaging marketing message'
+        
+        # FIXED: Handle channels properly
+        channels = campaign.get('channels', [])
+        if not channels:
+            channels = campaign.get('primary_channels', ['Email', 'Social Media'])
         if isinstance(channels, str):
             channels = [channels]
         elif isinstance(channels, dict):
-            channels = list(channels.keys())
+            channels = list(channels.keys())[:4]
         
-        # Handle value propositions safely
-        value_props = campaign.get('value_propositions', ['Great value', 'Quality service'])
+        # FIXED: Handle value propositions
+        value_props = campaign.get('value_propositions', [])
+        if not value_props:
+            value_props = campaign.get('key_benefits', ['Great value', 'Quality service'])
         if isinstance(value_props, str):
             value_props = [value_props]
         
@@ -1831,6 +1832,8 @@ def generate_persona_insights(personas_data):
     return insights
 def validate_and_score_data(customer_data, product_info):
     """Enhanced data validation with detailed scoring"""
+    if not customer_data and not product_info:
+        return {'customer_data_quality': 0, 'product_detail_quality': 0, 'overall_readiness': 0, 'recommendations': []}
     scores = {
         'customer_data_quality': 0,
         'product_detail_quality': 0,
@@ -1917,8 +1920,25 @@ def display_competitive_analysis(comp_data):
         # Simple scoring based on opportunities
         advantage_score = min(100, len(opportunities) * 20 + len(gaps) * 15)
         st.progress(advantage_score / 100, f"Competitive Advantage: {advantage_score}%")
+def initialize_session_state():
+    session_vars = {
+        'analysis_complete': False,
+        'analysis_timestamp': None,
+        'personas_data': None,
+        'campaigns_data': None,
+        'analysis_data': None,
+        'additional_results': {},
+        'num_personas_generated': 3,
+        'advanced_features': {},
+        'chat_history': []
+    }
+    
+    for var, default_value in session_vars.items():
+        if var not in st.session_state:
+            st.session_state[var] = default_value        
 # Main Application (Enhanced)
 def main():
+    initialize_session_state()
     # Header with enhanced animations
     st.markdown('<h1 class="main-header">🎯 AI Marketing Persona Designer</h1>', unsafe_allow_html=True)
     st.markdown("""
@@ -2010,21 +2030,7 @@ def main():
     )
     
     # Real-time validation
-        if customer_data:
-            validation = validate_and_score_data(customer_data, product_info)
-            score = validation['customer_data_quality']
         
-            if score > 80:
-                st.sidebar.success(f"✅ Excellent data quality ({score:.0f}%)")
-            elif score > 60:
-                st.sidebar.warning(f"⚠️ Good data quality ({score:.0f}%)")
-            else:
-                st.sidebar.error(f"❌ More data needed ({score:.0f}%)")
-            
-            if validation['recommendations']:
-                with st.sidebar.expander("💡 Data Improvement Tips"):
-                    for rec in validation['recommendations'][:3]:
-                        st.write(f"• {rec}")
         
     else:  # Demo data
         customer_data = """
@@ -2062,7 +2068,21 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
         help="Provide context about what you're marketing",
         value="AI-powered productivity platform that helps businesses automate workflows, integrate tools, and boost team efficiency. Starting at $29/month with premium tiers up to $299/month. Key features include smart automation, analytics dashboard, mobile app, and 24/7 support."
     )
-    
+    if customer_data and product_info:
+        validation = validate_and_score_data(customer_data, product_info)
+        score = validation['customer_data_quality']
+        
+        if score > 80:
+            st.sidebar.success(f"✅ Excellent data quality ({score:.0f}%)")
+        elif score > 60:
+            st.sidebar.warning(f"⚠️ Good data quality ({score:.0f}%)")
+        else:
+            st.sidebar.error(f"❌ More data needed ({score:.0f}%)")
+        
+        if validation['recommendations']:
+            with st.sidebar.expander("💡 Data Improvement Tips"):
+                for rec in validation['recommendations'][:3]:
+                    st.write(f"• {rec}")    
     # Main Content Area
     col1, col2 = st.columns([2, 1])
     
@@ -2159,19 +2179,35 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
                         time.sleep(0.8)  # Realistic timing
         
         # Execute actual AI operations at specific steps
-                        if step_progress == 25:
-                            analysis_results = ai_engine.analyze_customer_data(customer_data, product_info)
-                        elif step_progress == 40:
-                            personas_results = ai_engine.create_personas(analysis_results, num_personas)
-                        elif step_progress == 55:
-                            campaigns_results = ai_engine.create_campaigns(personas_results)
-                        elif step_progress == 85:
-            # Generate additional features
-                            additional_results = {}
-                            if enable_competitor_analysis:
-                                additional_results['competitor_analysis'] = ai_engine.generate_competitor_analysis(personas_results)
-                            if enable_ab_testing and campaigns_results:
-                                additional_results['ab_tests'] = ai_engine.generate_ab_test_ideas(campaigns_results['campaigns'][0])
+                        try:
+                            if step_progress == 25:
+                                with st.spinner("🔍 Analyzing customer patterns..."):
+                                    analysis_results = ai_engine.analyze_customer_data(customer_data, product_info)
+                            elif step_progress == 40:
+                                with st.spinner("🎭 Creating personas..."):
+                                    personas_results = ai_engine.create_personas(analysis_results, num_personas)
+                            elif step_progress == 55:
+                                with st.spinner("🚀 Building campaigns..."):
+                                    campaigns_results = ai_engine.create_campaigns(personas_results)
+                            elif step_progress == 85:
+                                with st.spinner("🔬 Advanced insights..."):
+                                    additional_results = {}
+                                    if enable_competitor_analysis:
+                                        additional_results['competitor_analysis'] = ai_engine.generate_competitor_analysis(personas_results)
+                                    if enable_ab_testing and campaigns_results:
+                                        additional_results['ab_tests'] = ai_engine.generate_ab_test_ideas(campaigns_results['campaigns'][0])
+                        except Exception as e:
+                            st.error(f"🚨 Analysis failed at step {step_progress}%: {str(e)}")
+                            st.info("💡 Using fallback data to continue...")
+                            # Provide fallback data
+                            if step_progress == 25:
+                                analysis_results = ai_engine._get_fallback_analysis()
+                            elif step_progress == 40:
+                                personas_results = ai_engine._get_fallback_personas(num_personas)
+                            elif step_progress == 55:
+                                campaigns_results = ai_engine._get_fallback_campaigns()
+                            elif step_progress == 85:
+                                additional_results = {}
                     
                     # Store results in session state
                     st.session_state['analysis_complete'] = True
