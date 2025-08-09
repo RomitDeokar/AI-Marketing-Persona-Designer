@@ -11,7 +11,8 @@ from datetime import datetime
 import time
 import requests
 import google.generativeai as genai
-
+from dotenv import load_dotenv
+load_dotenv()
 # Configure page
 st.set_page_config(
     page_title="AI Marketing Persona Designer",
@@ -1019,7 +1020,11 @@ class EnhancedAIAnalysisEngine:
 @st.cache_resource
 def initialize_ai_engine():
     """Initialize AI Analysis Engine with embedded API key and fallback options"""
-    api_key = ""
+    api_key = os.getenv("GEMINI_API_KEY")
+    
+    if not api_key:
+        st.error("❌ GEMINI_API_KEY not found in environment variables. Please check your .env file.")
+        return None
     
     try:
         genai.configure(api_key=api_key)
@@ -2216,7 +2221,7 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
             # Enhanced confidence chart
             conf_chart = create_confidence_chart(personas_data)
             if conf_chart:
-                st.plotly_chart(conf_chart, use_container_width=True)
+                st.plotly_chart(conf_chart, use_container_width=True, key="personas_confidence_chart")
         
         # Tab 2: Campaign Strategies  
         with tabs[1]:
@@ -2228,7 +2233,7 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
             # Enhanced ROI chart
             roi_chart = create_roi_comparison_chart(campaigns_data)
             if roi_chart:
-                st.plotly_chart(roi_chart, use_container_width=True)
+                st.plotly_chart(roi_chart, use_container_width=True, key="campaigns_roi_chart")
         
         # Tab 3: Analytics Dashboard
         # Tab 3: Enhanced Analytics Dashboard
@@ -2268,17 +2273,17 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
             with col1:
                 market_chart = create_market_size_chart(personas_data)
                 if market_chart:
-                    st.plotly_chart(market_chart, use_container_width=True)
+                    st.plotly_chart(market_chart, use_container_width=True, key="analytics_market_chart")
         
         # Add confidence chart below
                 conf_chart = create_confidence_chart(personas_data)
                 if conf_chart:
-                    st.plotly_chart(conf_chart, use_container_width=True)
+                    st.plotly_chart(conf_chart, use_container_width=True, key="analytics_confidence_chart")
     
             with col2:
                 roi_chart = create_roi_comparison_chart(campaigns_data)
                 if roi_chart:
-                    st.plotly_chart(roi_chart, use_container_width=True)
+                    st.plotly_chart(roi_chart, use_container_width=True, key="analytics_roi_chart")
         
         # Smart recommendations
                 if smart_insights and smart_insights.get('targeting_recommendations'):
@@ -2618,7 +2623,7 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
                                     
                                     journey_chart = create_journey_map_chart(journey_data)
                                     if journey_chart:
-                                        st.plotly_chart(journey_chart, use_container_width=True)
+                                        st.plotly_chart(journey_chart, use_container_width=True, key="content_journey_chart")
                                     
                                     # Display journey stages
                                     st.markdown("#### 🗺️ Customer Journey Stages")
