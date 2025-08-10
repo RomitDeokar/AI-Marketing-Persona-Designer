@@ -13,6 +13,7 @@ import requests
 import google.generativeai as genai
 from dotenv import load_dotenv
 load_dotenv()
+
 # Configure page
 st.set_page_config(
     page_title="AI Marketing Persona Designer",
