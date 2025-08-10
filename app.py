@@ -2177,7 +2177,7 @@ Survey: "The mobile app is fantastic - I can manage everything on the go between
                     for step_text, step_progress in progress_steps:
                         status_text.markdown(f"**{step_text}**")
                         progress_bar.progress(step_progress)
-                        time.sleep(0.8)  # Realistic timing
+                        time.sleep(0.1)  # Realistic timing
         
         # Execute actual AI operations at specific steps
                         try:
