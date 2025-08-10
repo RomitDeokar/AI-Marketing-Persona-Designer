@@ -1,0 +1,39 @@
+# Core Streamlit Framework
+streamlit>=1.28.0
+
+# Data Processing and Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Google Generative AI (Gemini)
+google-generativeai>=0.3.0
+
+# Data Visualization
+plotly>=5.15.0
+
+# HTTP Requests
+requests>=2.31.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Date and Time Utilities (built-in, but ensuring compatibility)
+datetime
+
+# Additional Data Structures Support
+dataclasses
+
+# JSON Processing (built-in)
+json
+
+# Regular Expressions (built-in)
+re
+
+# Type Hints Support
+typing
+
+# Operating System Interface (built-in)
+os
+
+# Time Functions (built-in)
+time
